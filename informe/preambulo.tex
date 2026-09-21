@@ -1,0 +1,30 @@
+% Preambulo compartido por todas las partes del informe.
+% Cada parte hace \input{preambulo} y despues carga sus propias tablas.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noquoting]{babel}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+% ------------------------------------------------ colores
+% 'gris' lo usan las tablas generadas para las entradas repetidas por simetria
+\definecolor{gris}{RGB}{170,170,170}
+
+% ------------------------------------------------ espaciado
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{2.4ex plus 1ex}{1.2ex}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .5ex}{0.8ex}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6ex}
+\renewcommand{\arraystretch}{1.08}
+
+% ------------------------------------------------ atajos
+\newcommand{\hextt}[1]{\texttt{#1}}

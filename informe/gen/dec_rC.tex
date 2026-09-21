@@ -1,0 +1,88 @@
+% generado por gen_parte_a.py -- no editar a mano
+\newcommand{\rCXor}{%
+\begin{tabular}{@{}r@{\;\;}l@{\;\;}l@{}}
+ & $b_{0}$ & \texttt{1001\,1000\,1111} \\
+$\oplus$ & $b_{2}$ & \texttt{0011\,0101\,0111} \\
+\cmidrule(lr){2-3}
+ & & \texttt{1010\,1101\,1000} \\
+$\oplus$ & $b_{5}$ & \texttt{0111\,1100\,1100} \\
+\cmidrule(lr){2-3}
+ & & \texttt{1101\,0001\,0100} \\
+$\oplus$ & $b_{7}$ & \texttt{0010\,1011\,1110} \\
+\cmidrule(lr){2-3}
+ & & \texttt{1111\,1010\,1010} \\
+$\oplus$ & $b_{8}$ & \texttt{1000\,0111\,1011} \\
+\cmidrule(lr){2-3}
+ & & \texttt{0111\,1101\,0001} \\
+$\oplus$ & $b_{9}$ & \texttt{1110\,0111\,0100} \\
+\cmidrule(lr){2-3}
+ & $B\,r_{[23:12]}$ & \texttt{1001\,1010\,0101} \;$=$\; \texttt{9A5} \\
+\end{tabular}
+}
+\newcommand{\rCSind}{%
+\begin{tabular}{@{}r@{\;\;}l@{\;\;}l@{}}
+ & $B\,r_{[23:12]}$ & \texttt{1001\,1010\,0101} \\
+$\oplus$ & $r_{[11:0]}$ & \texttt{1001\,1010\,1010} \\
+\midrule
+ & $s$ & \texttt{0000\,0000\,1111} \;$=$\; \texttt{00F} \\
+\end{tabular}
+}
+\newcommand{\rCPesoS}{4}
+\newcommand{\rCTablaDos}{%
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$i$ & $b_i$ & $s\oplus b_i$ & $w$ \\
+\midrule
+0 & \texttt{1001\,1000\,1111} & \texttt{1001\,1000\,0000} & 3 \\
+1 & \texttt{0100\,1110\,0111} & \texttt{0100\,1110\,1000} & 5 \\
+2 & \texttt{0011\,0101\,0111} & \texttt{0011\,0101\,1000} & 5 \\
+3 & \texttt{1011\,1110\,0010} & \texttt{1011\,1110\,1101} & 9 \\
+4 & \texttt{1101\,1101\,0001} & \texttt{1101\,1101\,1110} & 9 \\
+5 & \texttt{0111\,1100\,1100} & \texttt{0111\,1100\,0011} & 7 \\
+6 & \texttt{0101\,0011\,1101} & \texttt{0101\,0011\,0010} & 5 \\
+7 & \texttt{0010\,1011\,1110} & \texttt{0010\,1011\,0001} & 5 \\
+8 & \texttt{1000\,0111\,1011} & \texttt{1000\,0111\,0100} & 5 \\
+9 & \texttt{1110\,0111\,0100} & \texttt{1110\,0111\,1011} & 9 \\
+10 & \texttt{1111\,0001\,1010} & \texttt{1111\,0001\,0101} & 7 \\
+11 & \texttt{1110\,1010\,1001} & \texttt{1110\,1010\,0110} & 7 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\rCQ}{%
+\begin{tabular}{@{}r@{\;\;}l@{\;\;}l@{}}
+ & $b_{8}$ & \texttt{1000\,0111\,1011} \\
+$\oplus$ & $b_{9}$ & \texttt{1110\,0111\,0100} \\
+\cmidrule(lr){2-3}
+ & & \texttt{0110\,0000\,1111} \\
+$\oplus$ & $b_{10}$ & \texttt{1111\,0001\,1010} \\
+\cmidrule(lr){2-3}
+ & & \texttt{1001\,0001\,0101} \\
+$\oplus$ & $b_{11}$ & \texttt{1110\,1010\,1001} \\
+\cmidrule(lr){2-3}
+ & $q$ & \texttt{0111\,1011\,1100} \;$=$\; \texttt{7BC} \\
+\end{tabular}
+}
+\newcommand{\rCPesoQ}{8}
+\newcommand{\rCTablaCuatro}{%
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$i$ & $b_i$ & $q\oplus b_i$ & $w$ \\
+\midrule
+0 & \texttt{1001\,1000\,1111} & \texttt{1110\,0011\,0011} & 7 \\
+1 & \texttt{0100\,1110\,0111} & \texttt{0011\,0101\,1011} & 7 \\
+2 & \texttt{0011\,0101\,0111} & \texttt{0100\,1110\,1011} & 7 \\
+3 & \texttt{1011\,1110\,0010} & \texttt{1100\,0101\,1110} & 7 \\
+4 & \texttt{1101\,1101\,0001} & \texttt{1010\,0110\,1101} & 7 \\
+5 & \texttt{0111\,1100\,1100} & \texttt{0000\,0111\,0000} & 3 \\
+6 & \texttt{0101\,0011\,1101} & \texttt{0010\,1000\,0001} & 3 \\
+7 & \texttt{0010\,1011\,1110} & \texttt{0101\,0000\,0010} & 3 \\
+8 & \texttt{1000\,0111\,1011} & \texttt{1111\,1100\,0111} & 9 \\
+9 & \texttt{1110\,0111\,0100} & \texttt{1001\,1100\,1000} & 5 \\
+10 & \texttt{1111\,0001\,1010} & \texttt{1000\,1010\,0110} & 5 \\
+11 & \texttt{1110\,1010\,1001} & \texttt{1001\,0001\,0101} & 5 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\rCRes}{%
+---
+}

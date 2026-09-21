@@ -1,0 +1,358 @@
+\documentclass[11pt,a4paper]{article}
+
+\input{preambulo}
+
+% ------------------------------------------------ tablas generadas
+\input{gen/constantes}
+\input{gen/dec_rA}
+\input{gen/dec_rB}
+\input{gen/dec_rC}
+
+
+\begin{document}
+
+\begin{center}
+  {\large\bfseries Código de Golay extendido $(24,12)$ --- Parte A}\\[0.3ex]
+  {\small Trabajo Práctico 2 · Curso de FEC 2026 · Fundación Fulgor}\\[0.3ex]
+  {\small Villar, Pedro}
+\end{center}
+
+
+\section*{Datos}
+
+Matriz $B$ (simétrica, $B^2=I$), idéntica para todos los grupos:
+
+\begin{center}\small
+\input{gen/tabla_b}
+\end{center}
+
+Convención de bits: $cw[23{:}12]=$ mensaje, $cw[11{:}0]=$ paridad; el bit
+$m[11-i]$ es $m_i$ y el bit $[11-j]$ de $b_i$ es $B[i][j]$. Con esa
+convención, multiplicar un vector $x$ de 12 bits por $B$ es sumar
+(XOR) las filas $b_i$ tales que $x_i=1$:
+\[
+  x\cdot B \;=\; \bigoplus_{i\,:\,x_i=1} b_i .
+\]
+
+\section{Ejercicio 1 --- Matrices y parámetros}
+
+\subsection{$G$ y $H$}
+
+$G=[\,I_{12}\mid B\,]$ y $H=[\,B\mid I_{12}\,]$, ambas $12\times 24$:
+
+\begin{center}\small
+\begin{minipage}[t]{0.47\textwidth}
+  \centering $G$\\[0.6ex]
+  \input{gen/matriz_g}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\textwidth}
+  \centering $H$\\[0.6ex]
+  \input{gen/matriz_h}
+\end{minipage}
+\end{center}
+
+\subsection{$B$ es simétrica}
+
+Se lee cada columna $j$ de $B$ de arriba a abajo y se compara con la fila
+$b_j$. El bit $i$ de la columna $j$ es $B[i][j]$, o sea el bit $[11-j]$ de
+$b_i$:
+
+\begin{center}\small
+\input{gen/tabla_simetria}
+\end{center}
+
+Las doce coinciden, entonces $B^{T}=B$.
+
+\subsection{$G\,H^{T}=0$}
+
+Con $H=[\,B\mid I_{12}\,]$ se tiene $H^{T}=\begin{bmatrix}B^{T}\\ I_{12}\end{bmatrix}$
+(bloques de $12\times 12$), y el producto se parte en dos sumandos:
+\[
+  G\,H^{T}
+  \;=\;
+  \begin{bmatrix} I_{12} & B \end{bmatrix}
+  \begin{bmatrix} B^{T} \\ I_{12} \end{bmatrix}
+  \;=\; I_{12}\,B^{T} + B\,I_{12}
+  \;=\; B^{T}+B
+  \;=\; B+B \;=\; 0 ,
+\]
+donde la anteúltima igualdad es la simetría recién verificada y la última
+vale porque en $GF(2)$ la suma es XOR y $x+x=0$.
+
+Chequeo numérico sobre una fila: $g_0=(u_0\mid b_0)$, entonces
+$g_0H^{T}=u_0B^{T}+b_0=b_0+b_0=0$, y lo mismo para las otras once.
+
+\subsection{$B^{2}=I$}
+
+Como $B$ es simétrica, $B^2=B\,B^{T}$, así que la entrada $(i,j)$ es el
+producto interno de dos \emph{filas}:
+\[
+  (B^2)_{ij} \;=\; \sum_{k=0}^{11} B[i][k]\,B[k][j]
+  \;=\; b_i\cdot b_j
+  \;=\; w\!\left(b_i \wedge b_j\right) \bmod 2 ,
+\]
+o sea la paridad de la cantidad de posiciones donde $b_i$ y $b_j$ tienen
+ambos un 1. Además $B^2$ también es simétrica, así que alcanza con calcular
+las $\binom{12}{2}+12=78$ entradas con $j\ge i$.
+
+Tres entradas desarrolladas:
+
+\input{gen/ejemplos_bcuadrado}
+
+La tabla completa de $w(b_i\wedge b_j)$ (en gris, las entradas repetidas por
+simetría):
+
+\begin{center}\footnotesize
+\input{gen/tabla_bcuadrado}
+\end{center}
+
+La diagonal vale $w(b_i)=7$ en los doce casos, que es impar, y todas las
+entradas de fuera de la diagonal son pares. Tomando paridad queda
+$(B^2)_{ii}=1$ y $(B^2)_{ij}=0$ para $i\neq j$, es decir $B^2=I_{12}$.
+
+\subsection{Dimensión, tasa y overhead}
+
+\begin{align*}
+  n &= 24, \qquad k = 12, \qquad n-k = 12 \quad\text{(bits de paridad)}\\
+  R &= \frac{k}{n} = \frac{12}{24} = \frac{1}{2} = 0{,}5 \\
+  \text{overhead} &= \frac{n-k}{k} = \frac{12}{12} = 1 = \text{100\,\%}
+  \qquad\left(\text{o bien } \frac{n-k}{n}=\text{50\,\%}\ \text{del bloque}\right)
+\end{align*}
+
+El código es $(24,12)$: entran 12 bits de mensaje y salen 24 de palabra
+código. Hay $2^{12}=4096$ palabras código.
+
+\subsection{Codificación a mano de $m=\hextt{A5C}$}
+
+\[
+  m = \hextt{A5C} = \texttt{1010\,0101\,1100}
+  \quad\Longrightarrow\quad
+  m_i = 1 \text{ para } i \in \{0,2,5,7,8,9\}
+\]
+
+La paridad es $p=m\cdot B$, el XOR de esas seis filas:
+
+\begin{center}\small
+\input{gen/xor_codificacion}
+\end{center}
+
+\[
+  v = (\,m \mid p\,) = \texttt{1010\,0101\,1100}\;\texttt{1001\,1010\,0101}
+    = \cwEj
+\]
+
+\subsection{Verificación $v\,H^{T}=0$}
+
+Partiendo $v=(m\mid p)$ y usando otra vez $H^{T}=\left[\begin{smallmatrix}B^{T}\\ I\end{smallmatrix}\right]$:
+\[
+  v\,H^{T} \;=\; m\,B^{T} + p\,I \;=\; m\,B + p \;=\; p + p \;=\; 0 .
+\]
+
+Numéricamente, $m\cdot B = \parEj$ (la cuenta de arriba) y
+$p = \parEj$, entonces
+\[
+  \texttt{1001\,1010\,0101} \oplus \texttt{1001\,1010\,0101}
+  = \texttt{0000\,0000\,0000} = \hextt{000}. \qquad \checkmark
+\]
+
+\section{Ejercicio 2 --- Distancia mínima y capacidad de corrección}
+
+Distribución de pesos del código (dato del enunciado):
+
+\begin{center}\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+peso $w$ & 0 & 8 & 12 & 16 & 24 \\
+\midrule
+cantidad de palabras & 1 & 759 & 2576 & 759 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+El código es lineal, así que la distancia mínima es el peso mínimo no nulo:
+\[
+  d_{\min} = \min\{\,w(v) : v \in C,\; v \neq 0\,\} = 8 .
+\]
+(Chequeo: $1+759+2576+759+1 = 4096 = 2^{12}$, están todas las palabras.)
+
+\textbf{Corrección.} Para corregir $t$ errores las esferas de radio $t$
+alrededor de cada palabra código no se tienen que tocar, lo que pide
+$d_{\min}\ge 2t+1$:
+\[
+  2t+1 \le 8 \;\Longrightarrow\; t \le \tfrac{7}{2} = 3{,}5
+  \;\Longrightarrow\; t = \left\lfloor \frac{d_{\min}-1}{2} \right\rfloor
+  = \left\lfloor \frac{7}{2} \right\rfloor = 3 .
+\]
+
+\textbf{Detección.} Usando el código solo para detectar, cualquier patrón de
+error de peso $\le d_{\min}-1 = 7$ no puede llevar una palabra código a otra,
+así que se detectan hasta \textbf{7} errores.
+
+\textbf{Los dos a la vez.} Corrigiendo $t$ y detectando $l\ge t$ hace falta
+$d_{\min}\ge t+l+1$:
+\[
+  l \le d_{\min} - t - 1 = 8 - 3 - 1 = 4 .
+\]
+O sea: corrige 3 y detecta 4. Esto se ve en el Ejercicio 3 con $r_3$, que
+tiene un patrón de error de peso 4: el decodificador no lo corrige, pero lo
+marca como no corregible en lugar de entregar una palabra equivocada.
+
+\section{Ejercicio 3 --- Decodificación manual}
+
+\textbf{Algoritmo (Parte C).} Con $s = B\,r_{[23:12]} \oplus r_{[11:0]}$ y
+$q = s\cdot B$, se prueban los casos en orden y gana el primero que se cumple:
+
+\begin{center}\small
+\begin{tabular}{@{}clc@{}}
+\toprule
+caso & condición & patrón de error \\
+\midrule
+1 & $w(s)\le 3$ & $e=(0\mid s)$ \\
+2 & $\exists\, i: w(s\oplus b_i)\le 2$ & $e=(u_i \mid s\oplus b_i)$ \\
+3 & $w(q)\le 3$, con $q=s\cdot B$ & $e=(q\mid 0)$ \\
+4 & $\exists\, i: w(q\oplus b_i)\le 2$ & $e=(q\oplus b_i \mid u_i)$ \\
+5 & ninguna de las anteriores & \texttt{o\_uncorrectable} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$u_i$ es el vector de 12 bits con un uno en la posición $i$. Los empates
+en $i$ se resuelven por prioridad de índice (gana el $i$ más chico).
+
+\noindent\fbox{\begin{minipage}{0.97\textwidth}\small
+\textbf{Nota sobre el síndrome.} El Ejercicio 9 del enunciado escribe
+$s = r_{[23:12]} \oplus B\,r_{[11:0]}$, pero esa expresión intercambia los
+dos bloques y es inconsistente con la tabla de casos de arriba: con ella el
+caso 1 pediría $e_2=s\cdot B$ en lugar de $e_2=s$, y los conteos del
+Ejercicio 7a no dan. Acá se usa $s = H\,r^{T} = B\,r_{[23:12]} \oplus r_{[11:0]}$,
+que es la que sale directo del $H=[\,B\mid I_{12}\,]$ definido en el propio
+enunciado y la que reproduce esos conteos.
+\end{minipage}}
+
+\subsection{$r_1 = \hextt{A5D9A6}$}
+
+$r_{[23:12]} = \hextt{A5D} = \texttt{1010\,0101\,1101}$, con unos en
+$i\in\{0,2,5,7,8,9,11\}$; $r_{[11:0]} = \hextt{9A6}$.
+
+\begin{center}\small
+\begin{minipage}[b]{0.46\textwidth}\centering
+  \rAXor
+\end{minipage}\hfill
+\begin{minipage}[b]{0.50\textwidth}\centering
+  \rASind
+\end{minipage}
+\end{center}
+
+$w(s) = \rAPesoS > 3$, el caso 1 no aplica. Se buscan los doce candidatos
+$s\oplus b_i$:
+
+\begin{center}\small
+\rATablaDos
+\end{center}
+
+Salta $i=11$ con peso 2, entonces es el \textbf{caso 2}:
+\[
+  e = (\,u_{11} \mid s\oplus b_{11}\,)
+    = (\,\texttt{0000\,0000\,0001} \mid \texttt{0000\,0000\,0011}\,)
+    = \hextt{001003}, \qquad w(e)=3 .
+\]
+
+\begin{center}\small
+\rARes
+\end{center}
+
+Mensaje decodificado: $\hat{m} = \hextt{A5C}$, que es el mismo del
+Ejercicio 1.
+
+\subsection{$r_2 = \hextt{A5F9A4}$}
+
+$r_{[23:12]} = \hextt{A5F} = \texttt{1010\,0101\,1111}$, con unos en
+$i\in\{0,2,5,7,8,9,10,11\}$; $r_{[11:0]} = \hextt{9A4}$.
+
+\begin{center}\small
+\begin{minipage}[b]{0.46\textwidth}\centering
+  \rBXor
+\end{minipage}\hfill
+\begin{minipage}[b]{0.50\textwidth}\centering
+  \rBSind
+\end{minipage}
+\end{center}
+
+$w(s) = \rBPesoS > 3$: no es el caso 1. Candidatos $s \oplus b_i$:
+
+\begin{center}\small
+\rBTablaDos
+\end{center}
+
+Ninguno baja de peso 2, así que tampoco es el caso 2. Se pasa a
+$q = s\cdot B$:
+
+\begin{center}\small
+\rBQ
+\end{center}
+
+$w(q) = \rBPesoQ > 3$: no es el caso 3. Candidatos $q \oplus b_i$:
+
+\begin{center}\small
+\rBTablaCuatro
+\end{center}
+
+Aparece $i=11$ con peso 2, entonces es el \textbf{caso 4}:
+\[
+  e = (\,q\oplus b_{11} \mid u_{11}\,)
+    = (\,\texttt{0000\,0000\,0011} \mid \texttt{0000\,0000\,0001}\,)
+    = \hextt{003001}, \qquad w(e)=3 .
+\]
+
+\begin{center}\small
+\rBRes
+\end{center}
+
+Mensaje decodificado: $\hat{m} = \hextt{A5C}$, otra vez el del Ejercicio 1.
+
+\subsection{$r_3 = \hextt{A5C9AA}$}
+
+$r_{[23:12]} = \hextt{A5C}$, con unos en $i\in\{0,2,5,7,8,9\}$ --- el mismo
+mensaje del Ejercicio 1 ---; $r_{[11:0]} = \hextt{9AA}$.
+
+\begin{center}\small
+\begin{minipage}[b]{0.46\textwidth}\centering
+  \rCXor
+\end{minipage}\hfill
+\begin{minipage}[b]{0.50\textwidth}\centering
+  \rCSind
+\end{minipage}
+\end{center}
+
+$w(s) = \rCPesoS > 3$: no es el caso 1. Candidatos $s \oplus b_i$:
+
+\begin{center}\small
+\rCTablaDos
+\end{center}
+
+Ninguno con peso $\le 2$: tampoco es el caso 2. Se calcula $q = s\cdot B$:
+
+\begin{center}\small
+\rCQ
+\end{center}
+
+$w(q) = \rCPesoQ > 3$: no es el caso 3. Candidatos $q \oplus b_i$:
+
+\begin{center}\small
+\rCTablaCuatro
+\end{center}
+
+Ninguno con peso $\le 2$: tampoco es el caso 4. Se llega al \textbf{caso 5},
+\texttt{o\_uncorrectable} en alto, y $\hat{m}$ y $e$ no son válidas.
+
+Comparando con la palabra del Ejercicio 1, $v=\cwEj$:
+\[
+  r_3 \oplus v = \hextt{A5C9AA} \oplus \hextt{A5C9A5}
+  = \hextt{00000F} = \texttt{0000\,0000\,0000\,0000\,0000\,1111},
+  \qquad w = 4 .
+\]
+
+El error real tiene peso 4, uno más que $t=3$. Es justo el caso del
+Ejercicio 2: el código lo detecta pero no lo puede corregir.
+
+\end{document}
