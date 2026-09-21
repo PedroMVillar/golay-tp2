@@ -1,0 +1,413 @@
+\documentclass[11pt,a4paper]{article}
+
+\input{preambulo}
+
+% ------------------------------------------------ tablas generadas
+\input{gen/constantes_b}
+
+\begin{document}
+
+\begin{center}
+  {\large\bfseries Código de Golay extendido $(24,12)$ --- Parte B}\\[0.3ex]
+  {\small Modelo de referencia en software · Trabajo Práctico 2 · Curso de FEC 2026}\\[0.3ex]
+  {\small Villar, Pedro}
+\end{center}
+
+\section*{Qué se entrega}
+
+El paquete \texttt{golay/}, construido sobre \texttt{fec\_algebra}, la
+librería de campos de Galois del Trabajo Práctico 1. Es el \emph{golden
+model} contra el cual se verifica el RTL de la Parte C.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+módulo & ejercicio & contenido \\
+\midrule
+\texttt{bits.py}     & 4    & la convención de bits del enunciado \\
+\texttt{linalg.py}   & 4    & álgebra matricial sobre $GF(2^m)$ \\
+\texttt{matrices.py} & 5    & $B$, $G=[\,I\mid B\,]$, $H=[\,B\mid I\,]$ \\
+\texttt{encoder.py}  & 5, 6 & codificador matricial y enumeración \\
+\texttt{decoder.py}  & 6    & algoritmo de cuatro casos \\
+\texttt{cosets.py}   & 6    & tabla de síndromes derivada de $H$ \\
+\texttt{stimulus.py} & 7b   & estímulo para los testbenches de la Parte C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Todos los números de este informe los produce \texttt{gen\_parte\_b.py}
+corriendo el modelo, y el script verifica cada uno contra las tablas del
+enunciado con \texttt{assert} antes de escribirlo.
+
+\section{Ejercicio 4 --- De $GF(2^m)$ a $GF(2)$}
+
+\subsection{El campo con $m=1$}
+
+Se instancia la clase del Trabajo Práctico 1 con $m=1$ y $P(x)=x+1$:
+
+\begin{center}\small
+\texttt{GF(m=1, primitive\_poly=0b1)}
+\end{center}
+
+El campo queda con $2^1=2$ elementos y sus tablas se reducen a las de
+$GF(2)$:
+
+\begin{center}\small
+\begin{tabular}[t]{@{}c|cc@{}}
+$+$ & 0 & 1 \\
+\midrule
+0 & 0 & 1 \\
+1 & 1 & 0 \\
+\end{tabular}
+\qquad
+\begin{tabular}[t]{@{}c|cc@{}}
+$\cdot$ & 0 & 1 \\
+\midrule
+0 & 0 & 0 \\
+1 & 0 & 1 \\
+\end{tabular}
+\qquad
+\begin{tabular}[t]{@{}c|c@{}}
+$a$ & $a^{-1}$ \\
+\midrule
+0 & --- \\
+1 & 1 \\
+\end{tabular}
+\end{center}
+
+La suma es XOR y el producto es AND, como tiene que ser. El $0$ no tiene
+inverso y la librería levanta \texttt{GFZeroDivisionError}.
+
+\subsection{¿Hizo falta corregir la librería?}
+
+No. Ninguna parte de la implementación asume $m\ge 2$. Vale la pena
+mostrar por qué, porque en dos lugares la fórmula general degenera y
+sigue dando bien.
+
+\textbf{Producto.} El lazo de \texttt{multiply} recorre $m=1$ iteración:
+\[
+  \texttt{result} = \begin{cases} a & \text{si } b\,\&\,1 \\ 0 &
+  \text{si no}\end{cases}
+  \qquad\Longrightarrow\qquad a\cdot b = a \wedge b .
+\]
+La rama de reducción módulo el primitivo llega a ejecutarse, pero opera
+sobre $x$ después de que ya se usó, y el enmascarado final la vuelve
+irrelevante. El resultado es el producto de $GF(2)$.
+
+\textbf{Inverso.} La librería calcula $a^{-1} = a^{2^m-2}$, que para $m=1$
+da $a^{0}=1$ para cualquier $a$. Parece un caso degenerado y sin embargo
+es correcto, justamente porque el único elemento invertible de $GF(2)$ es
+el $1$ y su inverso es $1$. El $a=0$ se ataja antes con una excepción.
+
+El test \texttt{test\_no\_hizo\_falta\_tocar\_la\_libreria} deja esto
+fijado: si alguien más adelante ``optimiza'' \texttt{fec\_algebra}
+asumiendo $m\ge 2$, la suite lo detecta.
+
+\subsection{El álgebra matricial agregada}
+
+El Trabajo Práctico 1 dejó los tipos (\texttt{GF}, \texttt{GFElement},
+\texttt{GFPoly}) pero no el álgebra de matrices. Es lo que agrega
+\texttt{golay/linalg.py}, como funciones puras sobre listas de
+\texttt{GFElement}, genéricas sobre cualquier $GF$ y no solo sobre
+$GF(2)$:
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+operación & función \\
+\midrule
+producto vector-matriz, $v\cdot M$   & \texttt{vec\_mat(v, M)} \\
+producto matriz-matriz, $A\cdot B$   & \texttt{mat\_mat(A, B)} \\
+peso de Hamming, $w(v)$              & \texttt{weight(v)} \\
+distancia de Hamming, $w(u-v)$       & \texttt{distance(u, v)} \\
+suma de vectores y de matrices       & \texttt{vec\_add}, \texttt{mat\_add} \\
+traspuesta, identidad, concatenación & \texttt{transpose}, \texttt{identity}, \texttt{hstack} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Un detalle de \texttt{vec\_mat} que conecta con la Parte A: se saltean los
+términos con $v_i=0$, que en $GF(2)$ son la mayoría, así que el producto
+se vuelve la suma de las filas seleccionadas por $v$,
+\[
+  v\cdot M \;=\; \bigoplus_{i\,:\,v_i=1} M_i ,
+\]
+que es exactamente como se hace la cuenta a mano.
+
+La convención de bits del enunciado ($m[11-i]$ es $m_i$) vive en
+\texttt{bits.py} y en ningún otro lado. Un desajuste de convención no
+rompe nada ruidosamente: devuelve números plausibles y equivocados.
+
+\section{Ejercicio 5 --- Construcción y verificación}
+
+\subsection{$G$ y $H$ con las operaciones nuevas}
+
+Las doce constantes de $B$ son el único dato duro del modelo. Todo lo
+demás sale de \texttt{linalg}:
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+$B$      & \texttt{to\_vec} de cada fila del enunciado \\
+$G$      & \texttt{hstack(identity(12), B)} \\
+$H$      & \texttt{hstack(B, identity(12))} \\
+$H^{T}$  & \texttt{transpose(H)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Las tres propiedades del Ejercicio 1}
+
+Verificadas con los productos matriciales, no a mano:
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+propiedad & cómo se verifica & resultado \\
+\midrule
+$B^{T}=B$    & \texttt{equal(B, transpose(B))}            & verdadero \\
+$B^{2}=I$    & \texttt{equal(mat\_mat(B,B), identity(12))} & verdadero \\
+$G\,H^{T}=0$ & \texttt{is\_zero(mat\_mat(G, transpose(H)))} & verdadero \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Coinciden con las cuentas a mano de la Parte A.
+
+\subsection{Distribución de pesos por fuerza bruta}
+
+Se enumeran las $2^{12}=4096$ palabras código aplicando $v=m\cdot G$ a
+cada mensaje, y se cuenta el peso de cada una:
+
+\begin{center}\small
+\input{gen/tabla_pesos_modelo}
+\end{center}
+
+Coincide exactamente con la tabla del Ejercicio 2. De ahí,
+\[
+  d_{\min} = \min\{\,w(v) : v\in C,\; v\neq 0\,\} = \dmin .
+\]
+
+\section{Ejercicio 6 --- Codificador y decodificador}
+
+\subsection{Codificador}
+
+Matricial y sin atajos: $v = m\cdot G$ con \texttt{vec\_mat}. Como
+$G=[\,I\mid B\,]$ el resultado es el mensaje seguido de su paridad, pero
+se calcula con el producto completo para que el modelo sea el que pide el
+enunciado y no una equivalencia. Verificado contra la Parte A:
+$m=\hextt{A5C}$ da $v=\hextt{A5C9A5}$.
+
+\subsection{Decodificador de cuatro casos}
+
+Las funciones del decodificador están a propósito en correspondencia uno
+a uno con los submódulos del RTL, con los mismos nombres y las mismas
+entradas y salidas:
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+RTL (Parte C) & referencia & etapa \\
+\midrule
+\texttt{golay\_syndrome}   & \texttt{syndrome(rx)}    & E1 \\
+\texttt{golay\_mult\_b}    & \texttt{mult\_b(vec)}    & E2 \\
+\texttt{popcount12}        & \texttt{popcount12(vec)} & E2 \\
+\texttt{golay\_row\_search} & \texttt{row\_search(vec)} & E2 \\
+\texttt{golay\_err\_gen}   & \texttt{err\_gen(\ldots)} & E3 \\
+\texttt{golay\_correct}    & \texttt{correct(rx, err)} & E3 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\texttt{decode()} no reimplementa nada: compone esas seis en el mismo
+orden que el pipeline de tres etapas. Así el testbench de cada submódulo
+compara contra su función homónima y el de integración contra
+\texttt{decode()}.
+
+Dos decisiones que salieron de leer las interfaces obligatorias del
+enunciado:
+
+\textbf{\texttt{o\_corrected}.} El módulo \texttt{golay\_correct} recibe
+únicamente \texttt{i\_rx} e \texttt{i\_err}. Entonces su salida no puede
+ser otra cosa que $|\,\texttt{i\_err}$: hubo corrección si y solo si el
+patrón de error es no nulo.
+
+\textbf{\texttt{o\_idx} y \texttt{o\_res} sin solución.} Cuando
+\texttt{golay\_row\_search} no encuentra ninguna fila, esos dos puertos
+son \emph{don't-care}. El modelo devuelve cero y el testbench no los debe
+comparar en ese caso.
+
+\subsection{Tabla de síndromes derivada de $H$}
+
+El algoritmo de cuatro casos no necesita ninguna tabla: resuelve por
+pesos y búsqueda sobre las filas $b_i$. Así que la tabla que pide el
+enunciado se usa para otra cosa, que es más útil: como
+\textbf{decodificador independiente} que sirve de oráculo, sin compartir
+una sola línea de lógica con el de cuatro casos.
+
+Se construye recorriendo todos los patrones de error de peso $\le 4$,
+calculando el síndrome de cada uno y agrupándolos. Para cada síndrome se
+guardan \emph{todos} los patrones del peso mínimo en que aparece, que es
+lo que después permite distinguir un coset corregible de uno ambiguo:
+
+\begin{center}\small
+\input{gen/tabla_cosets}
+\end{center}
+
+Los \nCosetsCorregibles{} cosets de peso $\le 3$ tienen líder único: esos
+patrones se corrigen. Los \nCosetsAmbiguos{} restantes tienen seis
+líderes de peso 4 empatados, y sin forma de elegir entre ellos lo único
+que se puede hacer es declarar la palabra no corregible.
+
+\textbf{Por qué exactamente seis.} Si $e$ y $e'$ son dos líderes del mismo
+coset, su suma $e+e'$ es una palabra código. Como $w(e)=w(e')=4$, esa
+suma pesa a lo sumo 8; y como es no nula y $d_{\min}=8$, pesa
+exactamente 8. Eso solo puede pasar si los soportes de $e$ y $e'$ son
+\emph{disjuntos}. Seis bloques disjuntos de cuatro posiciones cubren
+las 24, y ahí se termina: no entra un séptimo.
+
+\begin{center}\small
+\input{gen/tabla_sexteto}
+\end{center}
+
+El script verifica que los \nCosetsAmbiguos{} cosets ambiguos tienen esta
+estructura, no solo el del ejemplo.
+
+\section{Ejercicio 7 --- Caracterización del decodificador}
+
+\subsection{Barrido de los patrones de peso $\le 4$}
+
+Para cada peso $w$ entre 0 y 4 se recorre la totalidad de los patrones de
+error de ese peso y se clasifica el resultado en tres categorías:
+
+\begin{center}\small
+\input{gen/tabla_ej7a}
+\end{center}
+
+Coincide exactamente con la tabla del enunciado. La fila de
+``decodificados a otra palabra'' da cero en todas las columnas: el
+decodificador nunca entrega una palabra equivocada en silencio, o corrige
+bien o levanta la bandera.
+
+El barrido se hace sobre la palabra nula. Vale para cualquier palabra
+transmitida porque el síndrome depende solo de $e$ (ver §5), así que
+decodificar $e$ es equivalente a decodificar $v+e$ para cualquier $v$ del
+código.
+
+Esta tabla no es un dato empírico: es la estructura de cosets de la
+sección anterior leída de otra manera. Los $1+24+276+2024$ patrones de
+peso $\le 3$ son justo los líderes únicos, y los 10626 de peso 4 son los
+$\nCosetsAmbiguos \times 6$ líderes empatados.
+
+\subsection{Estímulo para la Parte C}
+
+No se emiten archivos de vectores. Siguiendo el patrón de la cátedra en
+la Unidad 3, los testbenches de cocotb importan el modelo por
+\texttt{PYTHONPATH} y generan el estímulo adentro del propio test.
+
+\textbf{Formato.} Cada generador de \texttt{stimulus.py} produce
+diccionarios cuyas claves son exactamente los nombres de los puertos del
+módulo RTL correspondiente. Las claves que empiezan con \texttt{\_} son
+metadatos para el reporte y no son puertos. Un testbench se escribe
+entonces sin traducir nada:
+
+\begin{center}\small
+\begin{tabular}{@{}l@{}}
+\toprule
+\texttt{from golay.stimulus import mult\_b\_vectors} \\
+\\
+\texttt{for vec in mult\_b\_vectors():} \\
+\texttt{\quad dut.i\_vec.value = vec["i\_vec"]} \\
+\texttt{\quad await Timer(2, "ns")} \\
+\texttt{\quad assert int(dut.o\_vec.value) == vec["o\_vec"]} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Cobertura.} Los submódulos de 12 bits se barren exhaustivamente,
+que es lo que pide el Ejercicio 10. El decodificador completo no se puede
+barrer: hay $2^{24}=16{,}7$ millones de palabras recibidas posibles. Para
+ese se cura un conjunto.
+
+\begin{center}\small
+\input{gen/tabla_estimulo}
+\end{center}
+
+El conjunto del decodificador son las 4096 palabras código sin error, más
+todos los patrones de peso 1, 2 y 3 aplicados a cinco palabras código
+distintas, más una submuestra de patrones de peso 4. Las cinco ramas del
+algoritmo quedan cubiertas:
+
+\begin{center}\small
+\input{gen/tabla_cobertura}
+\end{center}
+
+\section{Las dos preguntas del enunciado}
+
+\subsection{Por qué el síndrome solo depende del patrón de error}
+
+Sea $r = v + e$ con $v$ palabra código. Por definición del síndrome y por
+linealidad del producto matricial:
+\[
+  s \;=\; r\,H^{T} \;=\; (v+e)\,H^{T} \;=\; \underbrace{v\,H^{T}}_{=\,0} + \;e\,H^{T}
+    \;=\; e\,H^{T} .
+\]
+El primer término se anula porque $v = m\cdot G$ y $G\,H^{T}=0$, que es
+justamente la propiedad verificada en el Ejercicio 5: toda palabra código
+está en el núcleo de $H^{T}$. El mensaje transmitido desaparece de la
+cuenta y lo que queda es una función únicamente de $e$.
+
+La consecuencia práctica es la que organiza todo el decodificador: los
+$2^{24}$ vectores recibidos se reparten en $2^{12}=4096$ clases según su
+síndrome, dos vectores de la misma clase difieren en una palabra código,
+y el síndrome no puede distinguir entre ellos. Lo único que puede hacer
+el decodificador es elegir un representante de la clase, y la elección
+sensata es el de menor peso.
+
+\subsection{Por qué $d_{\min}=8$ detecta cuatro errores pero no los corrige}
+
+\textbf{Detecta.} Si $e$ tiene peso 4, $r=v+e$ nunca puede ser otra
+palabra código: si lo fuera, $e$ sería la diferencia de dos palabras
+código, o sea una palabra código de peso 4, y el peso mínimo no nulo del
+código es 8. Entonces el síndrome es no nulo y el error siempre se nota.
+En general esto vale hasta peso $d_{\min}-1=7$.
+
+\textbf{No corrige.} Corregir exige elegir un patrón de error, y para eso
+las esferas de radio $t$ alrededor de cada palabra código no se pueden
+tocar, lo que pide $d_{\min}\ge 2t+1$:
+\[
+  2t+1 \le 8 \;\Longrightarrow\; t = \left\lfloor\frac{8-1}{2}\right\rfloor = 3 .
+\]
+Corrigiendo $t=3$ y detectando $l$ errores más hace falta
+$d_{\min}\ge t+l+1$, o sea $l \le 8-3-1 = 4$: corrige 3, detecta 4.
+
+La cuenta de arriba dice que no se puede; la estructura de cosets dice
+exactamente por qué. Un patrón de peso 4 cae en un coset donde hay
+\emph{seis} patrones de peso 4, todos igual de plausibles y con soportes
+disjuntos. El síndrome no alcanza para distinguirlos, y elegir uno sería
+acertar una vez de cada seis. Por eso el algoritmo se detiene en el caso
+5 y levanta \texttt{o\_uncorrectable} en lugar de arriesgar.
+
+Esto es lo que se ve en el Ejercicio 3 de la Parte A con
+$r_3=\hextt{A5C9AA}$, cuyo error real pesa 4, y en la última columna de la
+tabla del Ejercicio 7a: los 10626 patrones de peso 4 se detectan, ninguno
+se corrige, y ninguno se decodifica mal.
+
+\section*{Resumen de la Parte B}
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Ej. 4 & \texttt{GF(m=1, P(x)=x+1)} da $GF(2)$; no hubo que tocar la librería \\
+Ej. 4 & \texttt{linalg}: \texttt{vec\_mat}, \texttt{mat\_mat}, \texttt{weight}, genéricos sobre $GF(2^m)$ \\
+Ej. 5 & $B^{T}=B$, $B^{2}=I$, $G\,H^{T}=0$ verificadas con productos matriciales \\
+Ej. 5 & pesos por fuerza bruta $=$ tabla del enunciado; $d_{\min}=\dmin$ \\
+Ej. 6 & codificador matricial, decodificador de cuatro casos, seis funciones espejo del RTL \\
+Ej. 6 & tabla de síndromes desde $H$: \nCosetsCorregibles{} cosets corregibles, \nCosetsAmbiguos{} ambiguos \\
+Ej. 7a & barrido de peso $\le 4$ $=$ tabla del enunciado, cero decodificaciones erróneas \\
+Ej. 7b & \nVectoresDecoder{} casos para el decodificador, las cinco ramas cubiertas \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
