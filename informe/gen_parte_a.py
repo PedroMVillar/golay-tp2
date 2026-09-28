@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
 """
-Genera los fragmentos LaTeX con las tablas largas de la Parte A.
-
-Las cuentas se hacen exactamente como en el papel (XOR de filas, AND +
-popcount, busqueda lineal sobre i); el script solo evita copiar a mano
-unos 300 numeros al .tex.
-
-    python gen_parte_a.py     ->  gen/*.tex
+Genera las tablas largas de la Parte A en gen/, para no copiar a mano
+todos esos números al .tex.
 """
 import os
 
@@ -17,7 +11,6 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gen")
 os.makedirs(OUT, exist_ok=True)
 
 
-# ---------------------------------------------------------------- helpers
 def w(x):
     return bin(x).count("1")
 
@@ -27,7 +20,6 @@ def bits(x, n=12):
 
 
 def nib(x, n=12):
-    """1001 1000 1111, con espacios finos, para meter en \\texttt{}."""
     s = bits(x, n)
     return r"\,".join(s[i:i + 4] for i in range(0, len(s), 4))
 
@@ -37,7 +29,6 @@ def tt(x, n=12):
 
 
 def mulB(v):
-    """v * B : XOR de las filas b_i tales que el bit [11-i] de v vale 1."""
     r = 0
     for i in range(12):
         if (v >> (11 - i)) & 1:
@@ -54,7 +45,6 @@ def enc(m):
 
 
 def syn(r):
-    """s = B r[23:12] + r[11:0], con H = [B | I]."""
     return mulB(r >> 12) ^ (r & 0xFFF)
 
 
@@ -67,7 +57,6 @@ def write(name, body):
     print("  ->", os.path.join("gen", name))
 
 
-# ------------------------------------------------------- 1. la matriz B
 L = [r"\begin{tabular}{@{}llc@{\hspace{2.5em}}llc@{}}", r"\toprule",
      r"fila & hex & binario & fila & hex & binario \\", r"\midrule"]
 for i in range(6):
@@ -78,7 +67,6 @@ L += [r"\bottomrule", r"\end{tabular}"]
 write("tabla_b.tex", "\n".join(L))
 
 
-# ------------------------------------------------------ 2. G y H enteras
 def matriz_bloque(left, right, label):
     L = [r"\begin{tabular}{@{}r@{\;\;}c@{\;\;}c@{}}"]
     for i in range(12):
@@ -93,7 +81,6 @@ write("matriz_g.tex", matriz_bloque(I12, B, "g"))
 write("matriz_h.tex", matriz_bloque(B, I12, "h"))
 
 
-# ------------------------------- 3. columnas de B (chequeo de simetria)
 cols = []
 for j in range(12):
     c = 0
@@ -114,7 +101,6 @@ L += [r"\bottomrule", r"\end{tabular}"]
 write("tabla_simetria.tex", "\n".join(L))
 
 
-# -------------------------------------- 4. B^2 : pesos de b_i AND b_j
 W = [[w(B[i] & B[j]) for j in range(12)] for i in range(12)]
 P = [[W[i][j] % 2 for j in range(12)] for i in range(12)]
 assert all(P[i][j] == (1 if i == j else 0)
@@ -136,7 +122,6 @@ for i in range(12):
 L.append(r"\end{tabular}")
 write("tabla_bcuadrado.tex", "\n".join(L))
 
-# un par de entradas desarrolladas del todo
 L = []
 for (i, j) in [(0, 0), (0, 1), (3, 7)]:
     a, b = B[i], B[j]
@@ -150,9 +135,7 @@ for (i, j) in [(0, 0), (0, 1), (3, 7)]:
 write("ejemplos_bcuadrado.tex", "\n".join(L))
 
 
-# ------------------------------------- 5. XOR acumulado de filas de B
 def cadena_xor(v, etiqueta):
-    """XOR acumulado de las filas seleccionadas, mostrando cada parcial."""
     idx = rows_of(v)
     L = [r"\begin{tabular}{@{}r@{\;\;}l@{\;\;}l@{}}"]
     acc = 0
@@ -177,9 +160,7 @@ write("xor_codificacion.tex", cad)
 v_ej = enc(msg)
 
 
-# ---------------------------------- 6. decodificacion de r1, r2, r3
 def tabla_busqueda(x, simbolo):
-    """Los 12 candidatos x + b_i con su peso."""
     L = [r"\begin{tabular}{@{}cccc@{}}", r"\toprule",
          r"$i$ & $b_i$ & $%s\oplus b_i$ & $w$ \\" % simbolo, r"\midrule"]
     hit = None
@@ -275,7 +256,6 @@ for nombre, r in (("rA", 0xA5D9A6), ("rB", 0xA5F9A4), ("rC", 0xA5C9AA)):
     print("     %s = %06X  ->  s = %03X, caso %d" % (nombre, r, tr["s"], tr["caso"]))
 
 
-# --------------------------------------------- 7. constantes sueltas
 L = [r"\newcommand{\parEj}{\texttt{%03X}}" % p,
      r"\newcommand{\cwEj}{\texttt{%06X}}" % v_ej]
 write("constantes.tex", "\n".join(L))
