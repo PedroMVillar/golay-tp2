@@ -72,6 +72,14 @@ def err_gen_vectors():
         }
 
 
+def correct_vectors():
+    for caso in decoder_vectors():
+        rx, err = caso["i_rx"], caso["o_err"]
+        cw, msg, corrected = decoder.correct(rx, err)
+        yield {"i_rx": rx, "i_err": err, "o_cw": cw, "o_msg": msg,
+               "o_corrected": int(corrected)}
+
+
 def errors_up_to(max_peso):
     for w in range(1, max_peso + 1):
         yield from error_patterns(w)
