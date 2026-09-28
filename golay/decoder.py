@@ -4,9 +4,6 @@ Decodificador de cuatro casos.
 Hay una función por cada submódulo del RTL de la Parte C (mult_b,
 popcount12, syndrome, row_search, err_gen, correct) y decode() las
 encadena en el mismo orden que el pipeline.
-
-El síndrome se calcula como s = r · H^T = B·r[23:12] ⊕ r[11:0], no como
-figura en el Ejercicio 9 (ver la nota en la Parte A del informe).
 """
 
 from dataclasses import dataclass
