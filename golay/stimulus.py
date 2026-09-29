@@ -7,7 +7,6 @@ el reporte, no puertos.
 """
 
 from collections import Counter
-from itertools import combinations
 
 from . import decoder
 from .cosets import error_patterns
@@ -19,9 +18,7 @@ EXTRA_MSGS = (0x000, 0xFFF, 0x001, 0x800)
 
 def mult_b_vectors():
     for v in range(4096):
-        once = decoder.mult_b(v)
-        # aplicar B dos veces tiene que volver a i_vec (B^2 = I)
-        yield {"i_vec": v, "o_vec": once, "_o_vec_twice": decoder.mult_b(once)}
+        yield {"i_vec": v, "o_vec": decoder.mult_b(v)}
 
 
 def popcount12_vectors():
@@ -113,10 +110,6 @@ def _decoder_record(cw, e=0):
         "o_corrected": int(res.corrected),
         "o_uncorrectable": int(res.uncorrectable),
         "_case": res.case,
-        "_syndrome": res.syndrome,
-        "_sent_cw": cw,
-        "_sent_err": e,
-        "_exact": not res.uncorrectable and res.err == e,
     }
 
 

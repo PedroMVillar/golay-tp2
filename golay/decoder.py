@@ -13,7 +13,7 @@ from .bits import from_vec, join_cw, split_cw, to_vec, unit_int
 from .matrices import B, HT
 
 
-@dataclass(frozen=True)
+@dataclass
 class DecodeResult:
     msg: int
     err: int
