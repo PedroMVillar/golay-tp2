@@ -1,3 +1,9 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+sim_build/
+results.xml
+
+# del informe solo se suben los pdf
+informe/*
+!informe/*.pdf
