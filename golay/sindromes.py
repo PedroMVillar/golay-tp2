@@ -23,7 +23,7 @@ def error_patterns(peso):
 
 
 @lru_cache(maxsize=None)
-def coset_table():
+def syndrome_table():
     # recorriendo hasta peso 4 aparecen los 4096 síndromes
     tabla = {}
     for w in range(5):
@@ -39,14 +39,14 @@ def coset_table():
 
 def decode_by_table(rx):
     s = syndrome(rx)
-    _, lideres = coset_table()[s]
-    if len(lideres) > 1:
+    _, patrones = syndrome_table()[s]
+    if len(patrones) > 1:
         return DecodeResult(0, 0, False, True, s, 5)
-    err = lideres[0]
+    err = patrones[0]
     msg, _ = split_cw(rx ^ err)
     return DecodeResult(msg, err, err != 0, False, s, 0)
 
 
 def structure_summary():
-    # (peso del líder, cantidad de líderes) -> cantidad de cosets
-    return Counter((w, len(l)) for w, l in coset_table().values())
+    # (peso mínimo, patrones de ese peso) -> cantidad de síndromes
+    return Counter((w, len(p)) for w, p in syndrome_table().values())

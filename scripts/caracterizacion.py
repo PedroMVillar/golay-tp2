@@ -13,14 +13,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from golay import (decode, decode_by_table, minimum_distance,
                    structure_summary, weight_distribution)
 from golay import stimulus
-from golay.cosets import error_patterns
+from golay.sindromes import error_patterns
 
 print("Ej 5 - distribucion de pesos:", dict(sorted(weight_distribution().items())))
 print("       d_min =", minimum_distance())
 
-print("\nEj 6 - tabla de sindromes (peso del lider, lideres) -> cosets:")
+print("\nEj 6 - tabla de sindromes:")
 for (peso, n), cant in sorted(structure_summary().items()):
-    print(f"       peso {peso}, {n} lider(es): {cant}")
+    print(f"       {cant} sindromes con {n} patron(es) de peso minimo {peso}")
 
 print("\nEj 7a - errores de peso 0 a 4 sobre la palabra nula:")
 for w in range(5):

@@ -9,7 +9,7 @@ el reporte, no puertos.
 from collections import Counter
 
 from . import decoder
-from .cosets import error_patterns
+from .sindromes import error_patterns
 from .encoder import all_codewords, encode
 
 MSG_REF = 0xA5C
