@@ -1,7 +1,7 @@
-// Interleaver seguido del deinterleaver, solo para el testbench.
-// La salida del interleaver llega un ciclo tarde por su registro de
-// salida, así que el deinterleaver sale del reset un ciclo después para
-// que los dos conmutadores queden alineados.
+// Junta el interleaver y el deinterleaver para poder probarlos juntos.
+// El interleaver entrega cada bit un ciclo tarde (tiene un registro a la
+// salida), así que el deinterleaver arranca un ciclo después para que los
+// dos conmutadores vayan sincronizados.
 
 module conv_chain #(
     parameter LAMBDA = 24,

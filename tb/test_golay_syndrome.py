@@ -1,5 +1,7 @@
-# Testbench de golay_syndrome: las 4096 palabras código tienen que dar
-# síndrome nulo, y además se prueban errores de peso 1 a 3.
+# Primero paso las 4096 palabras código: como no tienen errores, el
+# sindrome tiene que dar cero siempre. Dps paso una palabra con
+# errores de 1, 2 y 3 bits, y ahí el síndrome tiene que coincidir con el
+# que calcula el modelo.
 
 import cocotb
 from cocotb.triggers import Timer

@@ -1,5 +1,7 @@
-# Testbench de golay_row_search: barrido de los 4096 vectores.
-# Si no encuentra fila, o_idx y o_res no se comparan.
+# Para cada uno de los 4096 vectores, el módulo busca la primera fila de B
+# que, sumada al vector, lo deje con 2 unos o menos. Comparo si la
+# encontró, qué fila eligio y cómo quedó el vector. Si no encontro
+# ninguna, solo miro o_found, porque lo demás no es nada
 
 import cocotb
 from cocotb.triggers import Timer

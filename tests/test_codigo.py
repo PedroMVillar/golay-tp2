@@ -1,5 +1,9 @@
 """
-Ejercicios 5 y 6: matrices, codificador y decodificador.
+Ejercicios 5 y 6. Chequeo que B, G y H cumplan las propiedades de la
+Parte A, que el codificador dé las 4096 palabras con los pesos del
+enunciado y que el decodificador resuelva r1, r2 y r3 igual que a mano.
+También comparo el decodificador de cuatro casos con el de la tabla de
+síndromes.
 """
 
 import pytest

@@ -1,5 +1,7 @@
-# Testbench de golay_mult_b: los 4096 vectores, y aplicarlo dos veces
-# tiene que devolver la entrada (B^2 = I).
+# Le paso al módulo los 4096 vectores posibles de 12 bits y me fijo que la
+# salida sea la misma que calcula el modelo en Python. Además, cada salida
+# la vuelvo a meter como entrada: como B·B = I, multiplicar dos veces por
+# B tiene que devolver el vector original.
 
 import cocotb
 from cocotb.triggers import Timer

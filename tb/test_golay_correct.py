@@ -1,4 +1,6 @@
-# Testbench de golay_correct.
+# Le doy una palabra recibida y el error que calculó el modelo. El módulo
+# tiene que sacarle el error (un XOR), devolver la palabra corregida, el
+# mensaje de 12 bits y avisar si corrigió algo.
 
 import cocotb
 from cocotb.triggers import Timer

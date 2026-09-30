@@ -1,5 +1,8 @@
 """
-Ejercicio 4: la librería del TP1 con m = 1 y el álgebra matricial nueva.
+Ejercicio 4. Primero me fijo que la librería del TP1 con m = 1 se comporte
+como GF(2): sumar es XOR, multiplicar es AND y el único que tiene inverso
+es el 1. Después pruebo las operaciones de matrices nuevas con ejemplos
+chicos que se pueden hacer a mano.
 """
 
 import pytest

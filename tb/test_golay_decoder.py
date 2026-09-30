@@ -1,6 +1,9 @@
-# Testbench del decodificador completo. Entra una palabra por ciclo y la
-# salida de cada una se compara tres ciclos después contra el modelo:
-# mensaje y patrón de error bit a bit, y las dos banderas.
+# Le mando al decodificador una palabra por ciclo, sin esperar a que salga
+# la anterior, como funcionaría de verdad. Cada palabra tarda 3 ciclos en
+# salir, así que voy guardando lo que mandé y comparo cada salida con la
+# palabra de hace 3 ciclos: mensaje, error y las dos banderas. Hay palabras
+# sin error, con 1 a 3 errores (se tienen que corregir) y con 4 errores
+# (se tienen que marcar como no corregibles).
 
 import cocotb
 from cocotb.clock import Clock
@@ -32,13 +35,18 @@ async def test_decoder(dut):
 
     vectores = list(decoder_vectors())
     pendientes = []
-    for vec in vectores + [None] * (LATENCIA - 1):
-        if vec is not None:
-            dut.i_rx.value = vec["i_rx"]
+    for vec in vectores:
+        dut.i_rx.value = vec["i_rx"]
         await FallingEdge(dut.i_clk)
         pendientes.append(vec)
+        # lo que sale ahora es la palabra que mandé hace 3 ciclos
         if len(pendientes) == LATENCIA:
             chequear(dut, pendientes.pop(0))
+
+    # las dos últimas siguen adentro del pipeline, espero a que salgan
+    while pendientes:
+        await FallingEdge(dut.i_clk)
+        chequear(dut, pendientes.pop(0))
 
     dut._log.info("vectores: %d, por caso: %s", len(vectores),
                   dict(sorted(branch_coverage(vectores).items())))

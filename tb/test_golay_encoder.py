@@ -1,6 +1,7 @@
-# Testbench del codificador: los 4096 mensajes, uno por ciclo.
-# Se carga el mensaje, pasa un flanco de subida y en el flanco de bajada
-# siguiente ya tiene que estar la palabra (latencia de un ciclo).
+# Meto los 4096 mensajes, uno por ciclo de reloj. Como el codificador
+# tiene un registro a la salida, la palabra aparece en el ciclo siguiente,
+# así que después de cada flanco me fijo que la salida sea la palabra del
+# mensaje que acabo de meter.
 
 import cocotb
 from cocotb.clock import Clock

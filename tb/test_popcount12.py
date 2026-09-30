@@ -1,4 +1,5 @@
-# Testbench de popcount12: barrido de los 4096 vectores.
+# popcount12 cuenta cuántos unos tiene un vector. Pruebo los 4096 vectores
+# posibles uno por uno y comparo lo que da el módulo con lo que da el modelo.
 
 import cocotb
 from cocotb.triggers import Timer

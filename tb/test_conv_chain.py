@@ -1,6 +1,7 @@
-# Testbench de interleaver + deinterleaver en cadena: lo que sale tiene
-# que ser lo mismo que entró, atrasado LAMBDA*(LAMBDA-1)*J bits más los
-# dos registros de salida.
+# Pongo el interleaver y el deinterleaver uno detrás del otro. El primero
+# desordena los bits y el segundo los vuelve a ordenar, así que lo que sale
+# al final tiene que ser exactamente lo que entró, solo que atrasado. Meto
+# bits al azar y me fijo que salgan iguales y con el retardo que da la cuenta.
 
 import random
 
@@ -28,7 +29,9 @@ async def test_chain(dut):
         await FallingEdge(dut.i_clk)
         salida.append(int(dut.o_bit.value))
 
-    # el bit t entra en el flanco t y sale en el flanco t + retardo - 1
-    assert salida[retardo - 1:] == bits[:len(bits) - retardo + 1]
+    # el bit que metí en la vuelta t lo leo en la vuelta t + retardo - 1
+    # (el -1 es porque en cada vuelta ya leo después del flanco)
+    for t in range(len(bits) - retardo + 1):
+        assert salida[t + retardo - 1] == bits[t], f"bit {t}"
 
     dut._log.info("LAMBDA=%d J=%d, retardo %d bits", lam, j, retardo)
