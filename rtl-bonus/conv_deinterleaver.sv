@@ -27,7 +27,7 @@ module conv_deinterleaver #(
                     if (i_rst)
                         sr <= 0;
                     else if (rama == i)
-                        sr <= {sr, i_bit};
+                        sr <= {sr, i_bit};   // entra i_bit y se pierde el bit de arriba
                 end
 
                 assign salida[i] = sr[(LAMBDA-1-i)*J-1];

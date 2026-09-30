@@ -28,7 +28,7 @@ module conv_interleaver #(
                     if (i_rst)
                         sr <= 0;
                     else if (rama == i)
-                        sr <= {sr, i_bit};
+                        sr <= {sr, i_bit};   // entra i_bit y se pierde el bit de arriba
                 end
 
                 assign salida[i] = sr[i*J-1];

@@ -28,7 +28,8 @@ endif
 export PYTHONPATH := ../tb$(SEP)..
 
 MODULOS = golay_mult_b popcount12 golay_row_search golay_syndrome \
-          golay_err_gen golay_correct golay_encoder golay_decoder           conv_interleaver conv_chain
+          golay_err_gen golay_correct golay_encoder golay_decoder \
+          conv_chain
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
