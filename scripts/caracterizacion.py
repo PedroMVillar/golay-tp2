@@ -48,6 +48,8 @@ conteos = {
     "golay_row_search": stimulus.row_search_vectors(),
     "golay_syndrome": stimulus.syndrome_vectors(),
     "golay_encoder": stimulus.encoder_vectors(),
+    "golay_err_gen": stimulus.err_gen_vectors(),
+    "golay_correct": stimulus.correct_vectors(),
 }
 for modulo, gen in conteos.items():
     print(f"       {modulo}: {sum(1 for _ in gen)}")
