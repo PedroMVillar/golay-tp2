@@ -13,6 +13,7 @@ from golay.stimulus import syndrome_vectors
 async def test_syndrome(dut):
     for vec in syndrome_vectors():
         dut.i_rx.value = vec["i_rx"]
+        # el módulo no tiene reloj, así que espero un toque a que calcule la salida
         await Timer(1, "ns")
         syn = int(dut.o_syn.value)
         assert syn == vec["o_syn"], f"i_rx={vec['i_rx']:06X}"

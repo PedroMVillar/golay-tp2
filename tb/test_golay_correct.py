@@ -13,6 +13,7 @@ async def test_correct(dut):
     for vec in correct_vectors():
         dut.i_rx.value = vec["i_rx"]
         dut.i_err.value = vec["i_err"]
+        # el módulo no tiene reloj, así que espero un toque a que calcule la salida
         await Timer(1, "ns")
         msg = f"i_rx={vec['i_rx']:06X} i_err={vec['i_err']:06X}"
         assert int(dut.o_cw.value) == vec["o_cw"], msg

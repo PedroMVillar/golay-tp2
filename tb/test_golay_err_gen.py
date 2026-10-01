@@ -22,6 +22,7 @@ async def test_err_gen(dut):
         dut.i_idx_q.value = vec["i_idx_q"]
         dut.i_found_syn.value = vec["i_found_syn"]
         dut.i_found_q.value = vec["i_found_q"]
+        # el módulo no tiene reloj, así que espero un toque a que calcule la salida
         await Timer(1, "ns")
 
         msg = f"caso {vec['_case']}, s={vec['i_syn']:03X}"

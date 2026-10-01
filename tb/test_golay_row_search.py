@@ -13,6 +13,7 @@ from golay.stimulus import row_search_vectors
 async def test_row_search(dut):
     for vec in row_search_vectors():
         dut.i_vec.value = vec["i_vec"]
+        # el módulo no tiene reloj, así que espero un toque a que calcule la salida
         await Timer(1, "ns")
         msg = f"i_vec={vec['i_vec']:03X}"
         assert int(dut.o_found.value) == vec["o_found"], msg

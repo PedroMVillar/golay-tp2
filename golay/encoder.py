@@ -7,11 +7,7 @@ from functools import lru_cache
 
 from . import linalg
 from .bits import from_vec, to_vec
-from .matrices import B, G
-
-
-def parity(msg):
-    return from_vec(linalg.vec_mat(to_vec(msg, 12), B))
+from .matrices import G
 
 
 def encode(msg):

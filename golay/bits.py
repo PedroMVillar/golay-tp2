@@ -12,7 +12,6 @@ GF2 = GF(m=1, primitive_poly=0b1)
 
 MSG_BITS = 12
 PAR_BITS = 12
-CW_BITS = 24
 
 
 def to_vec(value, width):

@@ -47,10 +47,6 @@ def weight(v):
     return sum(1 for coef in v if int(coef) != 0)
 
 
-def distance(u, v):
-    return weight(vec_add(u, v))
-
-
 def is_zero(m):
     if isinstance(m[0], GFElement):
         return all(int(x) == 0 for x in m)
